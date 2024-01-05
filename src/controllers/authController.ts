@@ -3,10 +3,17 @@ import { compare, hash } from 'bcryptjs';
 import UserModel from '../models/User';
 import { generateToken } from '../utils/jwt';
 
-async function signup(req: Request, res: Response): Promise<void> {
+async function signup(req: any, res: any): Promise<void> {
   const { username, email, password } = req.body;
 
   try {
+    if(!username && !email && !password){
+        return res.status(404).json({ error: 'Enter valid username email password' });
+    }
+    const alreadyExists = await UserModel.findOne({ email });
+    if (!alreadyExists) {
+      return res.status(404).json({ error: 'User not found' });
+    }
     const hashedPassword = await hash(password, 10);
     const user = await UserModel.create({ username, email, password: hashedPassword });
 
